@@ -9,6 +9,10 @@ services:
       POSTGRES_DB: OneAuth
     volumes:
       - 'postgres_data:/var/lib/postgresql/data'
+  redis:
+    image: valkey/valkey:8-alpine
+    ports:
+      - '6379:6379'
 
 volumes:
   postgres_data:

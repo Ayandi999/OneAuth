@@ -1,0 +1,117 @@
+.font-google-sans {
+    font-family: 'Google Sans', 'Roboto', Arial, sans-serif;
+}
+
+.input-group {
+    position: relative;
+    width: 100%;
+}
+
+.google-input {
+    width: 100%;
+    padding: 16px 18px;
+    font-size: 17px;
+    background: transparent;
+    border: 1px solid #3c4043;
+    border-radius: 4px;
+    color: #e8eaed;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.google-input:focus {
+    border-color: #8ab4f8;
+    border-width: 2px;
+    padding: 15px 17px; /* Adjust for thicker border */
+}
+
+
+.google-input.error {
+    border-color: #f28b82;
+}
+
+.input-group label {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #202124;
+    padding: 0 6px;
+    color: #9aa0a6;
+    font-size: 17px;
+    pointer-events: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+.google-input:focus + label,
+.google-input:not(:placeholder-shown):not(:focus) + label,
+.google-input:-webkit-autofill + label {
+    top: 0;
+    font-size: 12px;
+    color: #8ab4f8;
+}
+
+.google-input.error + label {
+    color: #f28b82;
+}
+
+/* For placeholder behavior to work with :not(:placeholder-shown) */
+.google-input::placeholder {
+    color: transparent;
+}
+
+.google-btn-primary {
+    background-color: #8ab4f8;
+    color: #202124;
+    padding: 10px 24px;
+    border-radius: 4px;
+    font-weight: 500;
+    font-family: 'Google Sans', sans-serif;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.google-btn-primary:hover {
+    background-color: #aecbfa;
+    box-shadow: 0 1px 2px 0 rgba(0,0,0,0.302), 0 1px 3px 1px rgba(0,0,0,0.149);
+}
+
+.google-btn-primary:active {
+    background-color: #d2e3fc;
+}
+
+.error-text {
+    color: #f28b82;
+    font-size: 12px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+}
+
+.error-text::before {
+    content: "!";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid #f28b82;
+    border-radius: 50%;
+    margin-right: 8px;
+    font-weight: bold;
+    font-size: 10px;
+}
+
+.step-container {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.step-container.hidden {
+    display: none;
+    opacity: 0;
+}
+
+.step-container.active {
+    display: block;
+    opacity: 1;
+}

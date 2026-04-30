@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create your OneAuth Account</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Google+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/user/auth.css">
+
+</head>
+<body class="bg-[#202124] text-[#e8eaed] min-h-screen flex items-center justify-center font-roboto">
+    
+    <div class="w-full max-w-[520px] bg-[#202124] border border-[#3c4043] rounded-lg p-8 sm:p-12 mx-4 shadow-xl">
+
+        
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-google-sans mb-2">Create your OneAuth Account</h1>
+            <p class="text-base text-[#e8eaed]">to continue to OneAuth</p>
+        </div>
+
+        <form id="signupForm" class="space-y-6">
+            
+            <!-- Step 1: Personal Info -->
+            <div id="step-1" class="step-container active">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="input-group">
+                        <input type="text" id="firstName" required autocomplete="off" class="google-input">
+                        <label for="firstName">First name</label>
+                        <p id="error-firstName" class="error-text hidden">Enter first name</p>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="lastName" required autocomplete="off" class="google-input">
+                        <label for="lastName">Last name</label>
+                        <p id="error-lastName" class="error-text hidden">Enter last name</p>
+                    </div>
+                </div>
+                
+                <div class="mt-10 flex justify-end">
+                    <button type="button" onclick="nextStep(2)" class="google-btn-primary">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Credentials -->
+            <div id="step-2" class="step-container hidden">
+                <div class="space-y-6">
+                    <div class="input-group">
+                        <input type="email" id="email" required autocomplete="off" class="google-input">
+                        <label for="email">Your email address</label>
+                        <p id="error-email" class="error-text hidden">Enter a valid email address</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="input-group">
+                            <input type="password" id="password" required autocomplete="off" class="google-input">
+                            <label for="password">Password</label>
+                        </div>
+                        <div class="input-group">
+                            <input type="password" id="confirmPassword" required autocomplete="off" class="google-input">
+                            <label for="confirmPassword">Confirm</label>
+                        </div>
+                    </div>
+                    <p id="error-password" class="error-text hidden">Use 6 characters or more for your password</p>
+                    <p class="text-xs text-[#9aa0a6] mt-2">Use 6 or more characters with a mix of letters, numbers & symbols</p>
+                </div>
+
+                <div class="mt-10 flex justify-between items-center">
+                    <button type="button" onclick="nextStep(1)" class="text-[#8ab4f8] font-medium hover:bg-[#303134] px-4 py-2 rounded transition-colors">Back</button>
+                    <button type="button" onclick="submitForm()" class="google-btn-primary">Next</button>
+                </div>
+            </div>
+
+            <!-- Success State -->
+            <div id="step-success" class="step-container hidden text-center py-6">
+                <div class="mb-6 flex justify-center">
+                    <div class="w-16 h-16 rounded-full bg-[#1e8e3e]/20 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-[#81c995]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                </div>
+                <h2 class="text-2xl font-google-sans mb-4">All set!</h2>
+                <p class="text-[#9aa0a6]">Your account has been created successfully.</p>
+                <div class="mt-10">
+                    <button type="button" onclick="window.location.reload()" class="google-btn-primary">Finish</button>
+                </div>
+            </div>
+
+        </form>
+
+        <div class="mt-8 flex justify-between text-xs text-[#9aa0a6]">
+            <span>English (United States)</span>
+            <div class="space-x-4">
+                <a href="#" class="hover:text-[#e8eaed]">Help</a>
+                <a href="#" class="hover:text-[#e8eaed]">Privacy</a>
+                <a href="#" class="hover:text-[#e8eaed]">Terms</a>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentStep = 1;
+
+        function nextStep(step) {
+            if (step > currentStep) {
+                if (!validateStep(currentStep)) return;
+            }
+
+            document.getElementById(`step-${currentStep}`).classList.add('hidden');
+            document.getElementById(`step-${currentStep}`).classList.remove('active');
+            
+            document.getElementById(`step-${step}`).classList.remove('hidden');
+            document.getElementById(`step-${step}`).classList.add('active');
+
+            currentStep = step;
+        }
+
+        function validateStep(step) {
+            let isValid = true;
+            if (step === 1) {
+                const fName = document.getElementById('firstName');
+                const lName = document.getElementById('lastName');
+                
+                if (!fName.value.trim()) {
+                    showError(fName, 'error-firstName');
+                    isValid = false;
+                } else hideError(fName, 'error-firstName');
+
+                if (!lName.value.trim()) {
+                    showError(lName, 'error-lastName');
+                    isValid = false;
+                } else hideError(lName, 'error-lastName');
+            } else if (step === 2) {
+                const email = document.getElementById('email');
+                const pass = document.getElementById('password');
+                const conf = document.getElementById('confirmPassword');
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+                if (!emailRegex.test(email.value.trim())) {
+                    showError(email, 'error-email');
+                    isValid = false;
+                } else hideError(email, 'error-email');
+
+                if (pass.value.length < 6 || pass.value !== conf.value) {
+                    showError(pass, 'error-password');
+                    showError(conf, 'error-password');
+                    isValid = false;
+                } else {
+                    hideError(pass, 'error-password');
+                    hideError(conf, 'error-password');
+                }
+            }
+            return isValid;
+        }
+
+        function showError(input, errorId) {
+            input.classList.add('error');
+            document.getElementById(errorId).classList.remove('hidden');
+        }
+
+        function hideError(input, errorId) {
+            input.classList.remove('error');
+            document.getElementById(errorId).classList.add('hidden');
+        }
+
+        async function submitForm() {
+            if (!validateStep(2)) return;
+
+            const finalData = {
+                firstName: document.getElementById('firstName').value.trim(),
+                lastName: document.getElementById('lastName').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                password: document.getElementById('password').value.trim()
+            };
+
+            try {
+                const response = await fetch('/user/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(finalData)
+                });
+
+                if (response.ok) {
+                    alert("Account created successfully! Please sign in.");
+                    window.location.href = '/user/login';
+                } else {
+
+                    const error = await response.json();
+                    if (response.status === 409) {
+                        alert(error.message);
+                        window.location.href = '/user/login';
+                    } else {
+                        alert(error.message || "Registration failed");
+                    }
+                }
+
+            } catch (err) {
+                alert("Something went wrong. Please try again.");
+            }
+        }
+    </script>
+</body>
+</html>
