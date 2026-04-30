@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Client | OneAuth</title>
+    <link rel="stylesheet" href="/client/client.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <div class="container">
+        <div class="glass-card">
+            <div class="header">
+                <h1>Register Organization</h1>
+                <p>Register your application to start using OneAuth OIDC.</p>
+            </div>
+
+            <form id="clientForm">
+                <div class="input-group">
+                    <label for="clientName">Organization Name</label>
+                    <input type="text" id="clientName" name="clientName" placeholder="e.g. Acme Corp" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="clientSecret">Client Secret (Password)</label>
+                    <input type="password" id="clientSecret" name="clientSecret" placeholder="Choose a secure secret" required>
+                </div>
+
+                <div class="input-group" id="redirectUriContainer">
+                    <label>Redirect URIs</label>
+                    <div class="uri-input-wrapper">
+                        <input type="url" name="redirectUris" placeholder="https://app.example.com/callback" required>
+                    </div>
+                </div>
+
+                <button type="button" id="addUriBtn" class="secondary-btn">
+                    <span class="icon">+</span> Add Redirect URI
+                </button>
+
+                <button type="submit" class="primary-btn">Register Client</button>
+            </form>
+
+            <div id="message" class="message"></div>
+        </div>
+    </div>
+
+    <script>
+        const container = document.getElementById('redirectUriContainer');
+        const addBtn = document.getElementById('addUriBtn');
+        const form = document.getElementById('clientForm');
+        const message = document.getElementById('message');
+
+        let uriCount = 1;
+
+        addBtn.addEventListener('click', () => {
+            if (uriCount >= 4) {
+                alert('Maximum 4 redirect URIs allowed.');
+                return;
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'uri-input-wrapper';
+            wrapper.innerHTML = `
+                <input type="url" name="redirectUris" placeholder="https://app.example.com/callback" required>
+                <button type="button" class="remove-btn">&times;</button>
+            `;
+            container.appendChild(wrapper);
+            uriCount++;
+
+            wrapper.querySelector('.remove-btn').addEventListener('click', () => {
+                wrapper.remove();
+                uriCount--;
+            });
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            const data = {
+                clientName: formData.get('clientName'),
+                clientSecret: formData.get('clientSecret'),
+                redirectUris: formData.getAll('redirectUris')
+            };
+
+            try {
+                const response = await fetch('/client/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    const params = new URLSearchParams({
+                        name: data.clientName,
+                        id: result.data.clientId,
+                        uris: data.redirectUris.join(',')
+                    });
+                    window.location.href = `/client/success?${params.toString()}`;
+                } else {
+                    message.className = 'message error';
+                    message.textContent = result.message || 'Registration failed.';
+                }
+            } catch (err) {
+                message.className = 'message error';
+                message.textContent = 'Connection error. Please try again.';
+            }
+        });
+    </script>
+</body>
+</html>

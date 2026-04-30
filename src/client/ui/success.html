@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Successful | OneAuth</title>
+    <link rel="stylesheet" href="/client/client.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        .success-card {
+            text-align: left;
+        }
+        .data-label {
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+            margin-top: 1.5rem;
+        }
+        .id-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .data-value {
+            flex-grow: 1;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            font-family: monospace;
+            word-break: break-all;
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+        .copy-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: white;
+            border-radius: 10px;
+            padding: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+        .copy-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        .uri-list {
+            list-style: none;
+            padding: 0;
+        }
+        .uri-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            border: 1px solid var(--glass-border);
+        }
+        .footer-text {
+            margin-top: 2.5rem;
+            text-align: center;
+            color: var(--success);
+            font-weight: 400;
+            font-size: 0.9rem;
+            padding: 1rem;
+            border: 1px dashed rgba(34, 197, 94, 0.2);
+            border-radius: 12px;
+            background: rgba(34, 197, 94, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="glass-card success-card">
+            <div class="header">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🎉</div>
+                <h1>Registration Successful!</h1>
+                <p>Your organization has been registered. Please save these details securely.</p>
+            </div>
+
+            <div class="data-label">Organization Name</div>
+            <div id="orgName" class="data-value">Loading...</div>
+
+            <div class="data-label">Client ID</div>
+            <div class="id-container">
+                <div id="clientId" class="data-value" style="color: #fff;">Loading...</div>
+                <button id="copyBtn" class="copy-btn">Copy</button>
+            </div>
+
+            <div class="data-label">Allowed Redirect URIs</div>
+            <ul id="uriList" class="uri-list">
+                <!-- URIs will be injected here -->
+            </ul>
+
+            <div class="footer-text">
+                ✓ Safe to close this site now
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const name = urlParams.get('name');
+        const id = urlParams.get('id');
+        const uris = urlParams.get('uris') ? urlParams.get('uris').split(',') : [];
+
+        document.getElementById('orgName').textContent = name || 'N/A';
+        document.getElementById('clientId').textContent = id || 'N/A';
+
+        const uriList = document.getElementById('uriList');
+        if (uris.length > 0) {
+            uris.forEach(uri => {
+                const li = document.createElement('li');
+                li.className = 'uri-item';
+                li.textContent = uri;
+                uriList.appendChild(li);
+            });
+        } else {
+            uriList.innerHTML = '<li class="uri-item" style="color: var(--text-dim);">No URIs provided</li>';
+        }
+
+        // Copy functionality
+        const copyBtn = document.getElementById('copyBtn');
+        copyBtn.addEventListener('click', () => {
+            const idText = document.getElementById('clientId').textContent;
+            navigator.clipboard.writeText(idText).then(() => {
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'Copied!';
+                copyBtn.style.background = 'var(--success)';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                    copyBtn.style.background = '';
+                }, 2000);
+            });
+        });
+    </script>
+</body>
+</html>

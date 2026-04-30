@@ -99,3 +99,7 @@ typings/
 *.exe
 *.o
 *.so
+
+# Local development notes
+TODO.md
+
