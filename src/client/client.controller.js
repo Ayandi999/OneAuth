@@ -2,7 +2,7 @@ import asyncHandler from "../utils/asyncHandler.js"
 import db from '../db/index.js'
 import ApiError from '../utils/ApiError.js'
 import ApiResponse from '../utils/ApiResponse.js'
-import { clientRegistrationSchema } from "../client/validation/client.validation.js"
+import { clientRegistrationSchema } from "./validation/client.validation.js"
 import { clients } from "../db/schema.js"
 import argon2 from "argon2"
 

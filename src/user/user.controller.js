@@ -97,13 +97,16 @@ const userLoginController = asyncHandler(async (req, res) => {
           expires: expiresAt
      };
 
+     const returnTo = req.query.return_to || null;
+
      return res
           .status(200)
           .cookie("sessionId", session.id, cookieOptions)
           .json(
-               new ApiResponse(200, { sessionId: session.id }, "User logged in successfully")
+               new ApiResponse(200, { sessionId: session.id, returnTo }, "User logged in successfully")
           );
 });
+
 
 
 // ---------------------------------------------------------

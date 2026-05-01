@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authorize Access | OneAuth</title>
+    <link rel="stylesheet" href="/oauth2/consent.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="glass-container">
+        <div class="auth-card">
+            <div class="header">
+                <div class="logo">
+                    <span class="logo-text">OneAuth</span>
+                </div>
+                <h1>Authorize Application</h1>
+                <p class="subtitle"><span id="clientName" class="highlight">An Application</span> wants to access your account</p>
+            </div>
+
+            <div class="permissions-container">
+                <p class="section-title">This application will be able to:</p>
+                <ul id="scopeList" class="scope-list">
+                    <!-- Scopes will be injected here -->
+                </ul>
+            </div>
+
+            <div class="user-info">
+                <div class="avatar" id="userAvatar">U</div>
+                <div class="details">
+                    <p class="user-name" id="userName">User Name</p>
+                    <p class="user-email" id="userEmail">user@example.com</p>
+                </div>
+            </div>
+
+            <div class="actions">
+                <form id="consentForm" method="POST" action="/oauth2/consent">
+                    <!-- Hidden inputs for OIDC params -->
+                    <input type="hidden" name="client_id" id="hiddenClientId">
+                    <input type="hidden" name="redirect_uri" id="hiddenRedirectUri">
+                    <input type="hidden" name="scope" id="hiddenScope">
+                    <input type="hidden" name="state" id="hiddenState">
+                    <input type="hidden" name="response_type" id="hiddenResponseType">
+                    
+                    <button type="submit" name="decision" value="allow" class="btn btn-primary">Allow Access</button>
+                    <button type="submit" name="decision" value="deny" class="btn btn-secondary">Deny</button>
+                </form>
+            </div>
+
+            <div class="footer">
+                <p>Authorized by <span class="brand">OneAuth Identity</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get params from URL
+        const params = new URLSearchParams(window.location.search);
+        const clientName = params.get('client_name') || 'Application';
+        const scopes = params.get('scope') || 'openid';
+        const clientId = params.get('client_id');
+        const redirectUri = params.get('redirect_uri');
+        const state = params.get('state');
+        const responseType = params.get('response_type');
+
+        // Update UI
+        document.getElementById('clientName').textContent = clientName;
+        document.getElementById('hiddenClientId').value = clientId;
+        document.getElementById('hiddenRedirectUri').value = redirectUri;
+        document.getElementById('hiddenScope').value = scopes;
+        document.getElementById('hiddenState').value = state;
+        document.getElementById('hiddenResponseType').value = responseType;
+
+        // Parse scopes
+        const scopeArray = scopes.split(' ');
+        const scopeList = document.getElementById('scopeList');
+        
+        const scopeMap = {
+            'openid': 'Verify your identity',
+            'profile': 'Access your basic profile info (Name, Avatar)',
+            'email': 'View your email address',
+            'offline_access': 'Maintain access when you are not using the app'
+        };
+
+        scopeArray.forEach(scope => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <div class="check-icon">✓</div>
+                <div class="scope-text">
+                    <strong>${scope}</strong>
+                    <span>${scopeMap[scope] || 'Access requested permission'}</span>
+                </div>
+            `;
+            scopeList.appendChild(li);
+        });
+
+        // Fetch current user info (mocking for now, could be passed in URL)
+        // In a real app, you might fetch this from a session endpoint
+    </script>
+</body>
+</html>

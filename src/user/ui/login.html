@@ -82,7 +82,12 @@
 
 
                 try {
-                    const response = await fetch('/user/login', {
+                    // Capture return_to from the current page URL
+                    const params = new URLSearchParams(window.location.search);
+                    const returnToParam = params.get('return_to');
+                    const fetchUrl = returnToParam ? `/user/login?return_to=${encodeURIComponent(returnToParam)}` : '/user/login';
+
+                    const response = await fetch(fetchUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(loginData)
@@ -91,15 +96,15 @@
                     const result = await response.json();
 
                     if (response.ok) {
-                        alert("Login successful!");
-                        // You can redirect to home/dashboard here
-                        // window.location.href = '/';
+                        // Redirect to returnTo if provided, otherwise to a default (e.g., dashboard)
+                        window.location.href = result.data.returnTo || '/user/profile';
                     } else {
                         alert(result.message || "Login failed");
                     }
                 } catch (err) {
                     alert("Something went wrong. Please try again.");
                 }
+
             }
 
         }

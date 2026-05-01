@@ -2,6 +2,7 @@ import cookieParser from 'cookie-parser';
 import express, { urlencoded } from 'express'
 import userRouter from './user/user.routes.js';
 import clientRouter from './client/client.routes.js';
+import appRouter from './app/app.routes.js';
 
 const app = express();
 app.use(express.json());
@@ -13,6 +14,7 @@ app.use(cookieParser());
 app.get('/health', (_, res) => res.json({ message: "All good from here" }))
 app.use('/user', userRouter);
 app.use('/client', clientRouter);
+app.use('/oauth2', appRouter);
 
 
 export default app;

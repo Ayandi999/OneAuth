@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { registerClientController } from '../controller/client.controller.js'
+import { registerClientController } from '../client/client.controller.js'
 
 
 const __filename = fileURLToPath(import.meta.url);
