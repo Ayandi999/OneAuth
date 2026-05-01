@@ -31,7 +31,14 @@ const tokenRequestSchema = joi.object({
      redirect_uri: joi.string().uri().optional()
 }).or('secret', 'client_secret').or('clientID', 'client_id');
 
+const userInfoRequestSchema = joi.object({
+     client_id: joi.string().uuid().required(),
+     client_secret: joi.string().required(),
+     access_token: joi.string().required()
+});
+
 export {
      authQuerySchema,
-     tokenRequestSchema
+     tokenRequestSchema,
+     userInfoRequestSchema
 }

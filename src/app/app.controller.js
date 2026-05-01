@@ -7,7 +7,7 @@ import redisClient from '../db/redis.js'
 import accessClient from '../db/access.js'
 import ApiError from '../utils/ApiError.js'
 import asyncHandler from '../utils/asyncHandler.js'
-import { tokenRequestSchema } from './validation/validate.js'
+import { tokenRequestSchema, userInfoRequestSchema } from './validation/validate.js'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import crypto from 'crypto'
@@ -298,12 +298,54 @@ const tokenController = asyncHandler(async (req, res) => {
 });
 
 const userinfoController = asyncHandler(async (req, res) => {
-     res.status(200).json({ message: "Userinfo endpoint reached" });
+     let access_token = req.query.access_token || req.body?.access_token;
+     if (!access_token && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+          access_token = req.headers.authorization.split(' ')[1];
+     }
+
+     const payloadToValidate = {
+          client_id: req.query.client_id || req.body?.client_id,
+          client_secret: req.query.client_secret || req.body?.client_secret,
+          access_token
+     };
+
+     const { error, value } = userInfoRequestSchema.validate(payloadToValidate);
+     if (error) throw new ApiError(400, error.message);
+
+     const { client_id, client_secret, access_token: token } = value;
+
+     // Verify Client
+     const [client] = await db.select().from(clients).where(eq(clients.id, client_id));
+     if (!client) throw new ApiError(400, "Client not found");
+
+     const isSecretValid = await argon2.verify(client.clientSecret, client_secret);
+     if (!isSecretValid) throw new ApiError(401, "Invalid client secret");
+
+     // Verify Token
+     const privateKeyPath = path.join(process.cwd(), 'cert', 'private-key.pem');
+     const privateKeyStr = fs.readFileSync(privateKeyPath, 'utf8');
+
+     let decoded;
+     try {
+          decoded = jwt.verify(token, privateKeyStr, { algorithms: ['RS256'] });
+     } catch (err) {
+          throw new ApiError(401, "Invalid or expired access token");
+     }
+
+     if (decoded.clientId !== client_id) {
+          throw new ApiError(403, "Access token does not belong to this client");
+     }
+
+     // Return the payload information
+     const { iat, exp, clientId, ...info } = decoded;
+     res.status(200).json({ success: true, data: info });
 });
 
 
 const keysController = asyncHandler(async (req, res) => {
-     res.status(200).json({ keys: [] });
+     const publicKeyPath = path.join(process.cwd(), 'cert', 'public-key.pub');
+     const publicKeyStr = fs.readFileSync(publicKeyPath, 'utf8');
+     res.status(200).json({ publicKey: publicKeyStr });
 });
 
 export {
