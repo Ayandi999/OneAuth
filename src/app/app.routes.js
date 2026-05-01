@@ -19,7 +19,7 @@ const appRouter = Router();
 
 appRouter.get('/issuer', issuerController);
 appRouter.get('/auth', authMiddleware, authController);
-appRouter.post('/token', tokenController);
+appRouter.post('/token',tokenController);
 appRouter.get('/userinfo', userinfoController);
 appRouter.get('/keys', keysController);
 

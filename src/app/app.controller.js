@@ -1,12 +1,17 @@
+import fs from 'fs'
+import argon2 from 'argon2'
 import db from '../db/index.js'
-import { clients, sessions } from '../db/schema.js'
-import { eq } from 'drizzle-orm'
+import { clients, sessions, users, clientUserMap } from '../db/schema.js'
+import { eq, and } from 'drizzle-orm'
 import redisClient from '../db/redis.js'
+import accessClient from '../db/access.js'
 import ApiError from '../utils/ApiError.js'
 import asyncHandler from '../utils/asyncHandler.js'
+import { tokenRequestSchema } from './validation/validate.js'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import crypto from 'crypto'
+import jwt from 'jsonwebtoken'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -94,8 +99,202 @@ const consentSubmitController = asyncHandler(async (req, res) => {
 });
 
 
+//Client will hit this to get the tokens gneerated
 const tokenController = asyncHandler(async (req, res) => {
-     res.status(200).json({ message: "Token endpoint reached" });
+     //Client is going to send me Code I gave,secret,clientID,redirectURI,grant_type='authorization_code'
+     const { error, value } = tokenRequestSchema.validate(req.body);
+     if (error) throw new ApiError(400, error.message);
+
+     const { code, grant_type, secret = value.client_secret, clientID = value.client_id, redirectURI = value.redirect_uri } = value;
+
+     switch (grant_type) {
+          case 'authorization_code':{
+               //Use the code to retrieve the values from redis and delete the redis entry immediatelty
+               const redisDataStr = await redisClient.get(`auth_code:${code}`);
+               if (!redisDataStr) {
+                    throw new ApiError(400, "Invalid or expired authorization code");
+               }
+               await redisClient.del(`auth_code:${code}`);
+
+               const codeData = JSON.parse(redisDataStr);
+
+               //match the redirect URIs as well new and old must match if not error redirect to new redirect URI
+               if (codeData.redirectUri !== redirectURI || codeData.clientId !== clientID) {
+                    return res.redirect(`${redirectURI}?error=invalid_grant`);
+               }
+
+               //Pull the client out from DB using his ID he provides
+               const [client] = await db.select().from(clients).where(eq(clients.id, clientID));
+
+               //If client dont exist throw error
+               if (!client) {
+                    throw new ApiError(400, "Client not found");
+               }
+
+               //else Match my known secret to clients provided secret using argon 2
+               const isSecretValid = await argon2.verify(client.clientSecret, secret);
+               if (!isSecretValid) {
+                    throw new ApiError(401, "Invalid client secret");
+               }
+
+               //now fom redis use the scope to find out the info the client wants and extract those infor making a DB call to user table use userID to match
+               const [user] = await db.select().from(users).where(eq(users.id, codeData.userId));
+               if (!user) {
+                    throw new ApiError(404, "User not found");
+               }
+
+               //use private key to encrypt and sign the tokens from cert folder
+               const privateKeyPath = path.join(process.cwd(), 'cert', 'private-key.pem');
+               const privateKeyStr = fs.readFileSync(privateKeyPath, 'utf8');
+
+               const scopes = codeData.scope ? codeData.scope.split(' ') : [];
+               const payload = {
+                    clientId: clientID,
+                    userId: user.id,
+                    exp: Math.floor(Date.now() / 1000) + (60 * 60), // 1 hour
+                    iat: Math.floor(Date.now() / 1000)
+               };
+
+               if (scopes.includes('email')) payload.email = user.email;
+               if (scopes.includes('profile')) {
+                    payload.firstName = user.firstName;
+                    payload.lastName = user.lastName;
+               }
+
+               const accessToken = jwt.sign(payload, privateKeyStr, { algorithm: 'RS256' });
+
+               //generate refresh token[containing only the clientId and userID]
+               const refreshPayload = {
+                    clientId: clientID,
+                    userId: user.id,
+                    exp: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60), // 30 days
+                    iat: Math.floor(Date.now() / 1000)
+               };
+
+               const refreshToken = jwt.sign(refreshPayload, privateKeyStr, { algorithm: 'RS256' });
+
+               //store the created refresh token in the mapper table with the clientID and userID
+               const expiresAt = new Date();
+               expiresAt.setDate(expiresAt.getDate() + 30);
+
+               await db.insert(clientUserMap).values({
+                    clientId: clientID,
+                    userId: user.id,
+                    refreshToken: refreshToken,
+                    refreshTokenExpiresAt: expiresAt,
+                    revoked: false
+               });
+
+
+               //send response as cokkie with access and refresh also send them inside the json response in the ApiResponse with code 200
+               return res.status(200).json({
+                    success: true,
+                    message: "Tokens generated successfully",
+                    data: {
+                         access_token: accessToken,
+                         refresh_token: refreshToken,
+                         token_type: "Bearer",
+                         expires_in: 3600
+                    }
+               });
+          }
+          case 'refresh_token': {
+               //extract access and refresh token from req.body
+               const access_token = value.access_token;
+               const refresh_token = value.refresh_token;
+
+               // either is missing error
+               if (!access_token || !refresh_token) {
+                    throw new ApiError(400, "Both access_token and refresh_token are required");
+               }
+
+               // verify client
+               const [client] = await db.select().from(clients).where(eq(clients.id, clientID));
+               if (!client) throw new ApiError(400, "Client not found");
+
+               const isSecretValid = await argon2.verify(client.clientSecret, secret);
+               if (!isSecretValid) throw new ApiError(401, "Invalid client secret");
+
+               //unlock the refresh token
+               const privateKeyPath = path.join(process.cwd(), 'cert', 'private-key.pem');
+               const privateKeyStr = fs.readFileSync(privateKeyPath, 'utf8');
+
+               let decodedRefresh;
+               try {
+                    decodedRefresh = jwt.verify(refresh_token, privateKeyStr, { algorithms: ['RS256'] });
+               } catch (err) {
+                    throw new ApiError(401, "Invalid or expired refresh token");
+               }
+
+               if (decodedRefresh.clientId !== clientID) {
+                    throw new ApiError(403, "Token mismatch or unauthorized client");
+               }
+
+               // decode old access token
+               const decodedAccess = jwt.decode(access_token);
+               if (!decodedAccess || decodedAccess.userId !== decodedRefresh.userId) {
+                    throw new ApiError(400, "Invalid access token provided or mismatch with refresh token");
+               }
+
+               // check in DB
+               const [dbTokenMap] = await db.select().from(clientUserMap).where(
+                    and(
+                         eq(clientUserMap.clientId, clientID),
+                         eq(clientUserMap.userId, decodedRefresh.userId),
+                         eq(clientUserMap.refreshToken, refresh_token)
+                    )
+               );
+
+               if (!dbTokenMap || dbTokenMap.revoked) {
+                    throw new ApiError(403, "Refresh token revoked or not found");
+               }
+
+               //renew the refresh token update it in the DB 
+               const newRefreshPayload = {
+                    clientId: clientID,
+                    userId: decodedRefresh.userId,
+                    exp: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60),
+                    iat: Math.floor(Date.now() / 1000)
+               };
+               const newRefreshToken = jwt.sign(newRefreshPayload, privateKeyStr, { algorithm: 'RS256' });
+
+               const newExpiresAt = new Date();
+               newExpiresAt.setDate(newExpiresAt.getDate() + 30);
+
+               await db.update(clientUserMap)
+                    .set({
+                         refreshToken: newRefreshToken,
+                         refreshTokenExpiresAt: newExpiresAt
+                    })
+                    .where(eq(clientUserMap.id, dbTokenMap.id));
+
+               //make access token using the same data as in the previous access token
+               const newPayload = { ...decodedAccess };
+               delete newPayload.exp;
+               delete newPayload.iat;
+               newPayload.exp = Math.floor(Date.now() / 1000) + (60 * 60);
+               newPayload.iat = Math.floor(Date.now() / 1000);
+
+               const newAccessToken = jwt.sign(newPayload, privateKeyStr, { algorithm: 'RS256' });
+
+               //send it back
+               res.cookie('access_token', newAccessToken, { httpOnly: true, secure: true, sameSite: 'strict' });
+               res.cookie('refresh_token', newRefreshToken, { httpOnly: true, secure: true, sameSite: 'strict' });
+
+               return res.status(200).json({
+                    success: true,
+                    message: "Tokens refreshed successfully",
+                    data: {
+                         access_token: newAccessToken,
+                         refresh_token: newRefreshToken,
+                         token_type: "Bearer",
+                         expires_in: 3600
+                    }
+               });
+          }
+          default:
+               throw new ApiError(400, "Unsupported grant type");
+     }
 });
 
 const userinfoController = asyncHandler(async (req, res) => {

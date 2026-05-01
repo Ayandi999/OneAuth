@@ -18,6 +18,20 @@ const authQuerySchema = joi.object({
      state: joi.string().optional()
 });
 
+const tokenRequestSchema = joi.object({
+     grant_type: joi.string().valid('authorization_code', 'refresh_token').required(),
+     code: joi.string().when('grant_type', { is: 'authorization_code', then: joi.required(), otherwise: joi.optional() }),
+     access_token: joi.string().when('grant_type', { is: 'refresh_token', then: joi.required(), otherwise: joi.optional() }),
+     refresh_token: joi.string().when('grant_type', { is: 'refresh_token', then: joi.required(), otherwise: joi.optional() }),
+     secret: joi.string().optional(),
+     client_secret: joi.string().optional(),
+     clientID: joi.string().uuid().optional(),
+     client_id: joi.string().uuid().optional(),
+     redirectURI: joi.string().uri().optional(),
+     redirect_uri: joi.string().uri().optional()
+}).or('secret', 'client_secret').or('clientID', 'client_id');
+
 export {
-     authQuerySchema
+     authQuerySchema,
+     tokenRequestSchema
 }
