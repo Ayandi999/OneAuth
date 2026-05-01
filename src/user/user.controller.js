@@ -51,7 +51,15 @@ const userRegistrationController = asyncHandler(async (req, res) => {
           throw new ApiError(500, "Internal server error while creating user");
      }
 
-     // 5. Send proper structured API response
+     // 5. Send success email
+     await sendEmail({
+          to: createdUser.email,
+          subject: "Welcome to OneAuth",
+          text: `Hi ${createdUser.firstName},\n\nYour account has been created successfully. Thanks for using OneAuth!`,
+          html: `<h3>Welcome to OneAuth</h3><p>Hi ${createdUser.firstName},</p><p>Your account has been created successfully. Thanks for using OneAuth!</p>`
+     }).catch(err => console.error("Error sending registration email:", err));
+
+     // 6. Send proper structured API response
      return res.status(201).json(
           new ApiResponse(201, createdUser, "User registered successfully")
      );
@@ -177,6 +185,14 @@ const resetPasswordController = asyncHandler(async (req, res) => {
 
      // 4. Clean up Valkey
      await redisClient.del(`reset:${email.toLowerCase()}`);
+
+     // 5. Send success email
+     await sendEmail({
+          to: email,
+          subject: "Password Reset Successful",
+          text: `Your OneAuth password has been changed successfully. If you didn't do this, please contact support immediately.`,
+          html: `<h3>Password Reset Successful</h3><p>Your OneAuth password has been changed successfully.</p><p>If you didn't do this, please contact support immediately.</p>`
+     }).catch(err => console.error("Error sending reset password success email:", err));
 
      return res.status(200).json(
           new ApiResponse(200, null, "Password has been reset successfully")
