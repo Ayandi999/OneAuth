@@ -17,9 +17,9 @@ const __dirname = path.dirname(__filename);
 
 const appRouter = Router();
 
-appRouter.get('/issuer', issuerController);
+appRouter.get('/.well-known/openid-configuration', issuerController);
 appRouter.get('/auth', authMiddleware, authController);
-appRouter.post('/token',tokenController);
+appRouter.post('/token', tokenController);
 appRouter.get('/userinfo', userinfoController);
 appRouter.get('/keys', keysController);
 

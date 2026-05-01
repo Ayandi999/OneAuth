@@ -24,7 +24,7 @@ When a user clicks "Log in with OneAuth", redirect them to our authorization end
 
 **Example Request:**
 ```text
-https://your-oneauth-domain.com/oauth2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=https://yourapp.com/callback&response_type=code&scope=profile email&state=xyz123
+http://localhost:8080/oauth2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=http://localhost:3000/callback&response_type=code&scope=profile%20email&state=xyz123
 ```
 
 ### Step 2: Handle the Callback
@@ -32,7 +32,7 @@ Once the user logs in and grants permission, OneAuth will redirect them back to 
 
 **Example Callback:**
 ```text
-https://yourapp.com/callback?code=SPLIT_AUTH_CODE_XYZ&state=xyz123
+http://localhost:3000/callback?code=CODE_YOU_RECEIVED_IN_STEP_2&state=xyz123
 ```
 *Note: If the user denies consent, you will receive `?error=access_denied` instead.*
 
@@ -45,10 +45,10 @@ Immediately extract the `code` from the URL and make a backend server-to-server 
 ```json
 {
   "grant_type": "authorization_code",
-  "code": "SPLIT_AUTH_CODE_XYZ",
+  "code": "CODE_YOU_RECEIVED_IN_STEP_2",
   "client_id": "YOUR_CLIENT_ID",
   "client_secret": "YOUR_CLIENT_SECRET",
-  "redirect_uri": "https://yourapp.com/callback"
+  "redirect_uri": "http://localhost:3000/callback"
 }
 ```
 
@@ -124,6 +124,12 @@ If your application prefers to locally verify the signatures of the JWTs instead
 }
 ```
 You can use this public key with standard JWT libraries (algorithm: `RS256`) to locally verify the token's authenticity without needing an extra network request to OneAuth.
+
+## 6. OIDC Discovery Document
+
+To retrieve metadata about OneAuth's OpenID Connect routes (such as the authorization, token, and userinfo endpoints), make a `GET` request to our discovery endpoint:
+
+**Endpoint:** `GET /oauth2/.well-known/openid-configuration`
 
 ## Edge Cases to Handle
 - **Invalid Grant / Expired Code:** Authorization codes expire in 5 minutes and can only be used once. If your token exchange fails, redirect the user to log in again.
