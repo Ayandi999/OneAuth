@@ -1,5 +1,5 @@
 .font-google-sans {
-    font-family: 'Google Sans', 'Roboto', Arial, sans-serif;
+    font-family: 'Outfit', 'Google Sans', 'Roboto', Arial, sans-serif;
 }
 
 .input-group {
@@ -12,22 +12,22 @@
     padding: 16px 18px;
     font-size: 17px;
     background: transparent;
-    border: 1px solid #3c4043;
+    border: 1px solid #262626;
     border-radius: 4px;
-    color: #e8eaed;
+    color: #f8fafc;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .google-input:focus {
-    border-color: #8ab4f8;
+    border-color: #2dd4bf;
     border-width: 2px;
     padding: 15px 17px; /* Adjust for thicker border */
 }
 
 
 .google-input.error {
-    border-color: #f28b82;
+    border-color: #ef4444;
 }
 
 .input-group label {
@@ -35,9 +35,9 @@
     left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    background: #202124;
+    background: #0a0a0a;
     padding: 0 6px;
-    color: #9aa0a6;
+    color: #94a3b8;
     font-size: 17px;
     pointer-events: none;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -49,11 +49,11 @@
 .google-input:-webkit-autofill + label {
     top: 0;
     font-size: 12px;
-    color: #8ab4f8;
+    color: #2dd4bf;
 }
 
 .google-input.error + label {
-    color: #f28b82;
+    color: #ef4444;
 }
 
 /* For placeholder behavior to work with :not(:placeholder-shown) */
@@ -62,26 +62,26 @@
 }
 
 .google-btn-primary {
-    background-color: #8ab4f8;
-    color: #202124;
+    background-color: #2dd4bf;
+    color: #0a0a0a;
     padding: 10px 24px;
     border-radius: 4px;
     font-weight: 500;
-    font-family: 'Google Sans', sans-serif;
+    font-family: 'Outfit', 'Google Sans', sans-serif;
     transition: background-color 0.2s, box-shadow 0.2s;
 }
 
 .google-btn-primary:hover {
-    background-color: #aecbfa;
+    background-color: #14b8a6;
     box-shadow: 0 1px 2px 0 rgba(0,0,0,0.302), 0 1px 3px 1px rgba(0,0,0,0.149);
 }
 
 .google-btn-primary:active {
-    background-color: #d2e3fc;
+    background-color: #0f766e;
 }
 
 .error-text {
-    color: #f28b82;
+    color: #ef4444;
     font-size: 12px;
     margin-top: 4px;
     display: flex;
@@ -95,7 +95,7 @@
     justify-content: center;
     width: 14px;
     height: 14px;
-    border: 1.5px solid #f28b82;
+    border: 1.5px solid #ef4444;
     border-radius: 50%;
     margin-right: 8px;
     font-weight: bold;

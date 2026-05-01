@@ -1,11 +1,11 @@
 :root {
-    --primary: #6366f1;
-    --primary-hover: #4f46e5;
-    --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    --card-bg: rgba(30, 41, 59, 0.7);
+    --primary: #2dd4bf;
+    --primary-hover: #14b8a6;
+    --bg-gradient: linear-gradient(135deg, #0a0a0a 0%, #171717 100%);
+    --card-bg: rgba(38, 38, 38, 0.4);
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
-    --border: rgba(255, 255, 255, 0.1);
+    --border: rgba(38, 38, 38, 0.8);
 }
 
 * {
@@ -15,7 +15,7 @@
 }
 
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Outfit', sans-serif;
     background: var(--bg-gradient);
     color: var(--text-main);
     min-height: 100vh;
@@ -51,7 +51,7 @@ body {
 .logo-text {
     font-weight: 800;
     font-size: 24px;
-    background: linear-gradient(to right, #818cf8, #c084fc);
+    background: linear-gradient(to right, #2dd4bf, #99f6e4);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: -0.5px;
@@ -69,7 +69,7 @@ h1 {
 }
 
 .highlight {
-    color: #818cf8;
+    color: #2dd4bf;
     font-weight: 600;
 }
 
@@ -107,8 +107,8 @@ h1 {
 .check-icon {
     width: 20px;
     height: 20px;
-    background: rgba(99, 102, 241, 0.2);
-    color: #818cf8;
+    background: rgba(45, 212, 191, 0.2);
+    color: #2dd4bf;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -141,7 +141,7 @@ h1 {
 .avatar {
     width: 40px;
     height: 40px;
-    background: #4f46e5;
+    background: #14b8a6;
     border-radius: 50%;
     display: flex;
     align-items: center;
