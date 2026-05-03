@@ -60,8 +60,9 @@ const userRegistrationController = asyncHandler(async (req, res) => {
      }).catch(err => console.error("Error sending registration email:", err));
 
      // 6. Send proper structured API response
+     const redirectUri = req.query.redirect_uri || null;
      return res.status(201).json(
-          new ApiResponse(201, createdUser, "User registered successfully")
+          new ApiResponse(201, { ...createdUser, redirectUri }, "User registered successfully")
      );
 });
 
@@ -105,13 +106,13 @@ const userLoginController = asyncHandler(async (req, res) => {
           expires: expiresAt
      };
 
-     const returnTo = req.query.return_to || null;
+     const redirectUri = req.query.redirect_uri || req.query.return_to || null;
 
      return res
           .status(200)
           .cookie("sessionId", session.id, cookieOptions)
           .json(
-               new ApiResponse(200, { sessionId: session.id, returnTo }, "User logged in successfully")
+               new ApiResponse(200, { sessionId: session.id, redirectUri }, "User logged in successfully")
           );
 });
 
@@ -194,8 +195,9 @@ const resetPasswordController = asyncHandler(async (req, res) => {
           html: `<h3>Password Reset Successful</h3><p>Your OneAuth password has been changed successfully.</p><p>If you didn't do this, please contact support immediately.</p>`
      }).catch(err => console.error("Error sending reset password success email:", err));
 
+     const redirectUri = req.query.redirect_uri || null;
      return res.status(200).json(
-          new ApiResponse(200, null, "Password has been reset successfully")
+          new ApiResponse(200, { redirectUri }, "Password has been reset successfully")
      );
 });
 

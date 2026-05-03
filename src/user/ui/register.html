@@ -176,21 +176,27 @@
             };
 
             try {
-                const response = await fetch('/user/signup', {
+                const params = new URLSearchParams(window.location.search);
+                const redirectUriParam = params.get('redirect_uri');
+                const fetchUrl = redirectUriParam ? `/user/signup?redirect_uri=${encodeURIComponent(redirectUriParam)}` : '/user/signup';
+
+                const response = await fetch(fetchUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(finalData)
                 });
 
+                const targetLoginUrl = redirectUriParam ? `/user/login?redirect_uri=${encodeURIComponent(redirectUriParam)}` : '/user/login';
+
                 if (response.ok) {
                     alert("Account created successfully! Please sign in.");
-                    window.location.href = '/user/login';
+                    window.location.href = targetLoginUrl;
                 } else {
 
                     const error = await response.json();
                     if (response.status === 409) {
                         alert(error.message);
-                        window.location.href = '/user/login';
+                        window.location.href = targetLoginUrl;
                     } else {
                         alert(error.message || "Registration failed");
                     }
